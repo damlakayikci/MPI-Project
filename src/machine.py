@@ -7,7 +7,7 @@ class Machine:
     wear_factors: dict = { 'enhance': 0, 'split': 0, 'chop': 0, 'trim': 0, 'reverse': 0 }
     
     # define constructor
-    def __init__(self, id: int , operation: str , parent_id: int = None) -> None:
+    def __init__(self, id: int , operation: str, production_cycle: int, parent_id: int = None) -> None:
         self.id: int = id
         operations = Machine.operations[id%2].copy() 
         for op in operations:
@@ -19,7 +19,11 @@ class Machine:
         self.products: list[str] = []
         self.wear: int = 0
         self.parent_id: int = parent_id
+        self.children: list[int] = []
+        self.production_cycle: int = production_cycle
         
+    def add_child(self, child_id: int) -> None:
+        self.children.append(child_id)
 
     def add_product(self, product: str) -> None:
         self.products.append(product)
@@ -58,13 +62,20 @@ class Machine:
             return string[:len(string)//2 + 1]
         
     def work(self) -> None:
+        if self.production_cycle == 0:                    # if production cycle is over, return
+            return
+        self.production_cycle -= 1
         string = self.add()                               # add products in machine's product list
         operation = getattr(self, self.operation)         # get the operation to be performed
         self.wear += Machine.wear_factors[self.operation] # add wear factor
         string = operation(string)                        # perform the operation
+        
+        print("Machine {} performed {} operation on {} and wear factor is {}".format(self.id, self.operation, string, self.wear))
+
         self.operation = self.next_operations[0]          # set the next operation as current operation
         self.next_operations.remove(self.operation)       # remove the operation from the list
         self.next_operations.append(self.operation)       # add the operation to the end of the list
+
 
        
             
