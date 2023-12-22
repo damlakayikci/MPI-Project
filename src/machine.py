@@ -35,13 +35,13 @@ class Machine:
 #  ---------------------- OPERATIONS ---------------------- #
             
     def add(self) -> str:
-        # reorder the products in the list in the ascending order of  the first element in sublists and remove the first element ex: [2, 'ab'], [1, 'cd'] -> ['cd', 'ab']
         # Sort the list based on the first element of each sublist
+        print("***************NEW Machine {}'s products are {}".format(self.id, self.products))
+
         self.products.sort(key=lambda x: x[0])
 
         # Remove the first element from each sublist and create a new list
         self.products = [item[1] for item in self.products]
-        print("***************NEW Machine {}'s products are {}".format(self.id, self.products))
 
 
         return ''.join(map(str, self.products))
@@ -82,7 +82,6 @@ class Machine:
         
         if self.children != []:                           # if machine has children, wait for them to finish
             for child_id in self.children:
-                print("\n-WAITING:: Machine {} waiting for message from {}".format(self.id, child_id))
                 recv = comm.recv(source=0, tag=self.production_cycle)
                 print("\n-RECEIVED:: Machine {} received message from {} at production cycle {}\n".format(self.id, child_id, self.production_cycle))
                 self.products.append([recv[0], recv[1]])                # add the product to the machine's product list
@@ -90,14 +89,17 @@ class Machine:
                 
         string = self.add()                               # add products in machine's product list
         if self.id == 1:                                  # if machine is root, print the product
-            print("\n-ROOT:: Machine {}'s product is {}\n".format(self.id, string))
-            comm.send([self.id, 1,string], dest=0, tag=self.production_cycle) # TODO: 1 yerine ne yazacagimi
+            print("\n-ROOT:: Machine {}'s product is {} at production cycle {}\n".format(self.id, string, self.production_cycle))
+            comm.send([self.id, 1,string], dest=0, tag=self.production_cycle) # TODO: 1 yerine ne yazacagimi bilmiyorum
+            self.production_cycle -= 1
+            self.products = []
+            self.work(comm)
             return
         operation = getattr(self, self.operation)         # get the operation to be performed
         self.wear += Machine.wear_factors[self.operation] # add wear factor
         string = operation(string)                        # perform the operation
 
-        print("Machine {} performed {} operation on {} and wear factor is {}".format(self.id, self.operation, string, self.wear))
+        print("Machine {} performed {} operation on {} and wear factor is {} at production cycle {}".format(self.id, self.operation, string, self.wear, self.production_cycle))
 
         self.operation = self.next_operations[0]          # set the next operation as current operation
         self.next_operations.remove(self.operation)       # remove the operation from the list
@@ -107,6 +109,13 @@ class Machine:
             comm.send([self.id,self.parent_id, string], dest=0, tag=self.production_cycle)
             print("\n-SENT:: Machine {} sent message to {} at production cycle {}\n".format(self.id, self.parent_id, self.production_cycle))
         self.production_cycle -= 1
+        if self.children != []:                           # if machine has children, empty its product list
+            self.products = []
+        else: # TODO: dogru mu bilmiyorum
+            self.products = []
+            self.add_product([0,string])                      # else, add the product to its product list
+            
+        self.work( comm)                                   # call work function recursively for other production cycles
 
        
             
