@@ -36,8 +36,6 @@ class Machine:
             
     def add(self) -> str:
         # Sort the list based on the first element of each sublist
-        print("***************NEW Machine {}'s products are {}".format(self.id, self.products))
-
         self.products.sort(key=lambda x: x[0])
 
         # Remove the first element from each sublist and create a new list
@@ -85,7 +83,6 @@ class Machine:
                 recv = comm.recv(source=0, tag=self.production_cycle)
                 print("\n-RECEIVED:: Machine {} received message from {} at production cycle {}\n".format(self.id, child_id, self.production_cycle))
                 self.products.append([recv[0], recv[1]])                # add the product to the machine's product list
-                print("***************Machine {}'s products are {}".format(self.id, self.products))
                 
         string = self.add()                               # add products in machine's product list
         if self.id == 1:                                  # if machine is root, print the product
@@ -102,6 +99,7 @@ class Machine:
                 wear_factor = Machine.wear_factors[self.operation]
                 cost =(self.wear - threshold+1) * wear_factor
                 message = [self.id, cost, self.production_cycle]
+                comm.isend(message, dest=0, tag=0)
                 print("Wear out message is {}".format(message))
                 self.wear = 0                                 # reset the wear factor
             

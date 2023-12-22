@@ -68,7 +68,7 @@ def init(filename):
     with open(filename, 'r') as file:
         lines = file.readlines()
     num_machines = int(lines[0])
-    num_production_cycles = int(lines[1]) 
+    num_production_cycles = int(lines[1])
     return num_machines, num_production_cycles
 
 #filename = "/Users/damlakayikci/Desktop/cmpe/okul/cmpe300/MPI-Project/src/input2.txt"
