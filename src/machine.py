@@ -81,26 +81,25 @@ class Machine:
         if self.children != []:                           # if machine has children, wait for them to finish
             for child_id in self.children:
                 recv = comm.recv(source=0, tag=self.production_cycle)
-                print("\n-RECEIVED:: Machine {} received message from {} at production cycle {}\n".format(self.id, child_id, self.production_cycle))
+                # print("\n-RECEIVED:: Machine {} received message from {} at production cycle {}\n".format(self.id, child_id, self.production_cycle))
                 self.products.append([recv[0], recv[1]])                # add the product to the machine's product list
                 
         string = self.add()                               # add products in machine's product list
         if self.id == 1:                                  # if machine is root, print the product
-            print("\n-ROOT:: Machine {}'s product is {} at production cycle {}\n".format(self.id, string, self.production_cycle))
+            # print("\n-ROOT:: Machine {}'s product is {} at production cycle {}\n".format(self.id, string, self.production_cycle))
             comm.send([self.id, 1,string], dest=0, tag=self.production_cycle) # TODO: 1 yerine ne yazacagimi bilmiyorum
         else:
             operation = getattr(self, self.operation)         # get the operation to be performed
             self.wear += Machine.wear_factors[self.operation] # add wear factor
             string = operation(string)                        # perform the operation
 
-            print("Machine {} performed {} operation on {} and wear factor is {} at production cycle {}".format(self.id, self.operation, string, self.wear, self.production_cycle))
+            # print("Machine {} performed {} operation on {} and wear factor is {} at production cycle {}".format(self.id, self.operation, string, self.wear, self.production_cycle))
 
             if self.wear >= threshold:                        # if wear factor is greater than threshold, send the product to the parent
                 wear_factor = Machine.wear_factors[self.operation]
                 cost =(self.wear - threshold+1) * wear_factor
                 message = [self.id, cost, self.production_cycle]
                 comm.isend(message, dest=0, tag=0)
-                print("Wear out message is {}".format(message))
                 self.wear = 0                                 # reset the wear factor
             
             self.operation = self.next_operations[0]          # set the next operation as current operation
@@ -108,7 +107,7 @@ class Machine:
             self.next_operations.append(self.operation)       # add the operation to the end of the list
 
             comm.send([self.id,self.parent_id, string], dest=0, tag=self.production_cycle)
-            print("\n-SENT:: Machine {} sent message to {} at production cycle {}\n".format(self.id, self.parent_id, self.production_cycle))
+            # print("\n-SENT:: Machine {} sent message to {} at production cycle {}\n".format(self.id, self.parent_id, self.production_cycle))
             
         self.production_cycle -= 1
         if self.children != []:                          # if machine has children, empty its product list

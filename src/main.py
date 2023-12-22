@@ -3,14 +3,22 @@ from mpi4py import MPI
 import sys
 from machine import Machine 
 
+
+input_file = sys.argv[1]
+output_file = sys.argv[2]
+
 # get input from the file
-filename = "/Users/damlakayikci/Desktop/cmpe/okul/cmpe300/MPI-Project/src/input1.txt"
+filename = str(input_file)
+# filename = "/Users/damlakayikci/Desktop/cmpe/okul/cmpe300/MPI-Project/src/input1.txt"
 wear_outs = []
 machine_count, production_cycle  = init.init(filename)
 
+# Spawn the processes
 args = ["work.py", str(filename)]
-
 comm = MPI.COMM_SELF.Spawn(sys.executable, args=args, maxprocs=machine_count)
+
+# open the output file
+f = open(output_file, "w")
 
 for p in range(production_cycle, 0, -1):
     for i in range(machine_count):
@@ -22,12 +30,20 @@ for p in range(production_cycle, 0, -1):
             print(f"---CENTER:: Received EMERGENCY message {wear_out_msg}")
             wear_outs.append(msg)
         msg = comm.recv(source=MPI.ANY_SOURCE, tag=p)
-        print(f"---CENTER:: Received message  {msg}")
+        if msg[0] == 1: # root machine
+            print(f"---CENTER:: Received message  {msg}")
+            f.write(msg[2] + "\n")
+        # print(f"---CENTER:: Received message  {msg}")
         sender = msg[0]
         receiver = msg[1]
         string = msg[2]
         comm.send([sender,string], dest=receiver-1, tag=p)
-        print(f"---CENTER:: Sent message {msg} to {receiver} at production cycle {p}")
+        # print(f"---CENTER:: Sent message {msg} to {receiver} at production cycle {p}")
 
 # Close the spawned processes
 comm.Disconnect()
+
+# Write wear out messages to the output file
+for wear_out in wear_outs:
+    f.write(wear_out + "\n")
+f.close()
