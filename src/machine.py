@@ -75,8 +75,8 @@ class Machine:
         
     #  ---------------------- OPERATIONS ---------------------- #
         
-    def work(self, comm) -> None:
-       
+    def work(self, comm, threshold) -> None:
+
         if self.production_cycle == 0:                    # if production cycle is over, return
             return
         
@@ -91,31 +91,35 @@ class Machine:
         if self.id == 1:                                  # if machine is root, print the product
             print("\n-ROOT:: Machine {}'s product is {} at production cycle {}\n".format(self.id, string, self.production_cycle))
             comm.send([self.id, 1,string], dest=0, tag=self.production_cycle) # TODO: 1 yerine ne yazacagimi bilmiyorum
-            self.production_cycle -= 1
-            self.products = []
-            self.work(comm)
-            return
-        operation = getattr(self, self.operation)         # get the operation to be performed
-        self.wear += Machine.wear_factors[self.operation] # add wear factor
-        string = operation(string)                        # perform the operation
+        else:
+            operation = getattr(self, self.operation)         # get the operation to be performed
+            self.wear += Machine.wear_factors[self.operation] # add wear factor
+            string = operation(string)                        # perform the operation
 
-        print("Machine {} performed {} operation on {} and wear factor is {} at production cycle {}".format(self.id, self.operation, string, self.wear, self.production_cycle))
+            print("Machine {} performed {} operation on {} and wear factor is {} at production cycle {}".format(self.id, self.operation, string, self.wear, self.production_cycle))
 
-        self.operation = self.next_operations[0]          # set the next operation as current operation
-        self.next_operations.remove(self.operation)       # remove the operation from the list
-        self.next_operations.append(self.operation)       # add the operation to the end of the list
+            if self.wear >= threshold:                        # if wear factor is greater than threshold, send the product to the parent
+                wear_factor = Machine.wear_factors[self.operation]
+                cost =(self.wear - threshold+1) * wear_factor
+                message = [self.id, cost, self.production_cycle]
+                print("Wear out message is {}".format(message))
+                self.wear = 0                                 # reset the wear factor
+            
+            self.operation = self.next_operations[0]          # set the next operation as current operation
+            self.next_operations.remove(self.operation)       # remove the operation from the list
+            self.next_operations.append(self.operation)       # add the operation to the end of the list
 
-        if self.parent_id != None:                        # if machine has a parent, send the product to it
             comm.send([self.id,self.parent_id, string], dest=0, tag=self.production_cycle)
             print("\n-SENT:: Machine {} sent message to {} at production cycle {}\n".format(self.id, self.parent_id, self.production_cycle))
+            
         self.production_cycle -= 1
-        if self.children != []:                           # if machine has children, empty its product list
+        if self.children != []:                          # if machine has children, empty its product list
             self.products = []
         else: # TODO: dogru mu bilmiyorum
             self.products = []
-            self.add_product([0,string])                      # else, add the product to its product list
+            self.add_product([0,string])                 # else, add the product to its product list
             
-        self.work( comm)                                   # call work function recursively for other production cycles
+        self.work(comm, threshold)                       # call work function recursively for other production cycles
 
        
             

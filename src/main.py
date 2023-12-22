@@ -5,9 +5,12 @@ from machine import Machine
 
 # get input from the file
 filename = "/Users/damlakayikci/Desktop/cmpe/okul/cmpe300/MPI-Project/src/input2.txt"
+
 production_cycle, threshold, machine_count = init.get_input(filename)
 
-comm = MPI.COMM_SELF.Spawn(sys.executable, args=["work.py"], maxprocs=machine_count)
+args = ["work.py", str(production_cycle), str(threshold), str(machine_count)]
+
+comm = MPI.COMM_SELF.Spawn(sys.executable, args=args, maxprocs=machine_count)
 
 for p in range(production_cycle, 0, -1):
     for i in range(machine_count):
