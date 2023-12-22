@@ -4,11 +4,11 @@ import sys
 from machine import Machine 
 
 # get input from the file
-filename = "/Users/damlakayikci/Desktop/cmpe/okul/cmpe300/MPI-Project/src/input2.txt"
+filename = "/Users/damlakayikci/Desktop/cmpe/okul/cmpe300/MPI-Project/src/input1.txt"
 
-production_cycle, threshold, machine_count = init.get_input(filename)
+machine_count, production_cycle  = init.init(filename)
 
-args = ["work.py", str(production_cycle), str(threshold), str(machine_count)]
+args = ["work.py", str(filename)]
 
 comm = MPI.COMM_SELF.Spawn(sys.executable, args=args, maxprocs=machine_count)
 
