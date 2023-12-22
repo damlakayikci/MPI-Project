@@ -62,7 +62,7 @@ def get_input(filename):
         product = lines[3 + num_machines + i].strip()
         Machine.machines[leaves[i]].add_product([0,product]) # add the product to the leaf machine's product list
 
-    return leaves, threshold, num_machines
+    return num_production_cycles, threshold, num_machines
 
 #filename = "/Users/damlakayikci/Desktop/cmpe/okul/cmpe300/MPI-Project/src/input2.txt"
 
