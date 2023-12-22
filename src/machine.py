@@ -1,3 +1,4 @@
+from mpi4py import MPI
 
 class Machine:
    
@@ -5,6 +6,8 @@ class Machine:
     operations: list[list[str]] = [['enhance', 'split', 'chop'],['trim', 'reverse' ]] 
     # initialize wear factors to 0
     wear_factors: dict = { 'enhance': 0, 'split': 0, 'chop': 0, 'trim': 0, 'reverse': 0 }
+
+    machines: dict = {} # dictionary to keep the machines
     
     # define constructor
     def __init__(self, id: int , operation: str, production_cycle: int, parent_id: int = None) -> None:
@@ -32,6 +35,15 @@ class Machine:
 #  ---------------------- OPERATIONS ---------------------- #
             
     def add(self) -> str:
+        # reorder the products in the list in the ascending order of  the first element in sublists and remove the first element ex: [2, 'ab'], [1, 'cd'] -> ['cd', 'ab']
+        # Sort the list based on the first element of each sublist
+        self.products.sort(key=lambda x: x[0])
+
+        # Remove the first element from each sublist and create a new list
+        self.products = [item[1] for item in self.products]
+        print("***************NEW Machine {}'s products are {}".format(self.id, self.products))
+
+
         return ''.join(map(str, self.products))
 
     # duplicate the first and the last letter of the product
@@ -61,21 +73,40 @@ class Machine:
         else:                                    # else, split from the middle + 1
             return string[:len(string)//2 + 1]
         
-    def work(self) -> None:
+    #  ---------------------- OPERATIONS ---------------------- #
+        
+    def work(self, comm) -> None:
+       
         if self.production_cycle == 0:                    # if production cycle is over, return
             return
-        self.production_cycle -= 1
+        
+        if self.children != []:                           # if machine has children, wait for them to finish
+            for child_id in self.children:
+                print("\n-WAITING:: Machine {} waiting for message from {}".format(self.id, child_id))
+                recv = comm.recv(source=0, tag=self.production_cycle)
+                print("\n-RECEIVED:: Machine {} received message from {} at production cycle {}\n".format(self.id, child_id, self.production_cycle))
+                self.products.append([recv[0], recv[1]])                # add the product to the machine's product list
+                print("***************Machine {}'s products are {}".format(self.id, self.products))
+                
         string = self.add()                               # add products in machine's product list
+        if self.id == 1:                                  # if machine is root, print the product
+            print("\n-ROOT:: Machine {}'s product is {}\n".format(self.id, string))
+            comm.send([self.id, 1,string], dest=0, tag=self.production_cycle) # TODO: 1 yerine ne yazacagimi
+            return
         operation = getattr(self, self.operation)         # get the operation to be performed
         self.wear += Machine.wear_factors[self.operation] # add wear factor
         string = operation(string)                        # perform the operation
-        
+
         print("Machine {} performed {} operation on {} and wear factor is {}".format(self.id, self.operation, string, self.wear))
 
         self.operation = self.next_operations[0]          # set the next operation as current operation
         self.next_operations.remove(self.operation)       # remove the operation from the list
         self.next_operations.append(self.operation)       # add the operation to the end of the list
 
+        if self.parent_id != None:                        # if machine has a parent, send the product to it
+            comm.send([self.id,self.parent_id, string], dest=0, tag=self.production_cycle)
+            print("\n-SENT:: Machine {} sent message to {} at production cycle {}\n".format(self.id, self.parent_id, self.production_cycle))
+        self.production_cycle -= 1
 
        
             
