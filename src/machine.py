@@ -3,7 +3,7 @@ from mpi4py import MPI
 class Machine:
    
     # 0 index for even ids, 1 index for odd ids
-    operations: list[list[str]] = [['enhance', 'split', 'chop'],['trim', 'reverse' ]] 
+    operations: list[list[str]] = [['enhance', 'split', 'chop'],['trim', 'reverse' ]]
     # initialize wear factors to 0
     wear_factors: dict = { 'enhance': 0, 'split': 0, 'chop': 0, 'trim': 0, 'reverse': 0 }
 
@@ -15,9 +15,10 @@ class Machine:
         operations = Machine.operations[id%2].copy() 
         for op in operations:
             if op == operation:
-                self.operation: str = operation # operation to be performed
-                operations.remove(op)
-                self.next_operations: list[str] = operations # add the other operations to the list
+                self.operation_index: int = operations.index(op) # index of the operation to be performed
+                self.operation: str = operations[self.operation_index] # operation to be performed
+                # operations.remove(op)
+                # self.next_operations: list[str] = operations # add the other operations to the list
                 break
         self.products: list[str] = []
         self.wear: int = 0
@@ -103,10 +104,17 @@ class Machine:
                 comm.isend(message, dest=0, tag=0)
                 self.wear = 0                                 # reset the wear factor
             
-            self.operation = self.next_operations[0]          # set the next operation as current operation
-            self.next_operations.remove(self.operation)       # remove the operation from the list
-            self.next_operations.append(self.operation)       # add the operation to the end of the list
-
+            # self.operation = self.next_operations[0]          # set the next operation as current operation
+            # self.next_operations.remove(self.operation)       # remove the operation from the list
+            # self.next_operations.append(self.operation)       # add the operation to the end of the list
+            if self.id % 2 == 1:         
+                self.operation_index = (self.operation_index + 1) % 2
+                self.operation = Machine.operations[self.id%2][self.operation_index]
+                
+            else:
+                self.operation_index = (self.operation_index + 1) % 3
+                self.operation = Machine.operations[self.id%2][self.operation_index]
+                
             comm.send([self.id,self.parent_id, string], dest=0, tag=self.production_cycle)
             # print("\n-SENT:: Machine {} sent message to {} at production cycle {}\n".format(self.id, self.parent_id, self.production_cycle))
             

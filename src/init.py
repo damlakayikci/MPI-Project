@@ -43,7 +43,7 @@ def get_input(filename):
         operation = machine_info[2].strip()
 
         # create machine object and add it to the dictionary
-        Machine.machines[child_id] = Machine(child_id, operation,  num_production_cycles, parent_id)
+        Machine.machines[child_id] = Machine(child_id, operation, num_production_cycles, parent_id)
         
         # add the child to the parent's children list if parent is created already
         if Machine.machines[parent_id] != None:
