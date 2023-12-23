@@ -61,6 +61,7 @@ def get_input(filename):
     for i in range(len(leaves)):   
         product = lines[3 + num_machines + i].strip()
         Machine.machines[leaves[i]].add_product([0,product]) # add the product to the leaf machine's product list
+        Machine.machines[leaves[i]].original_string = product
 
     return num_production_cycles, threshold, num_machines
 

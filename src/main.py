@@ -15,7 +15,7 @@ machine_count, production_cycle  = init.init(filename)
 
 # Spawn the processes
 args = ["work.py", str(filename)]
-comm = MPI.COMM_SELF.Spawn(sys.executable, args=args, maxprocs=machine_count)
+comm = MPI.COMM_SELF.Spawn(sys.executable, args=args, maxprocs=machine_count+1) # TODO: sys sor
 
 # open the output file
 f = open(output_file, "w")
@@ -23,21 +23,22 @@ f = open(output_file, "w")
 for p in range(production_cycle, 0, -1):
     for i in range(machine_count):
         # Check for wear out messages
-        flag = comm.iprobe(source=MPI.ANY_SOURCE, tag=0)
+        flag = comm.iprobe(source=MPI.ANY_SOURCE, tag=0) # TODO: check hepsini alıyor mu
         if flag:
             wear_out_msg = comm.recv(source=MPI.ANY_SOURCE, tag=0)
             msg = "{}-{}-{}".format(wear_out_msg[0], wear_out_msg[1], production_cycle - int(wear_out_msg[2]))
             print(f"---CENTER:: Received EMERGENCY message {wear_out_msg}")
             wear_outs.append(msg)
-        msg = comm.recv(source=MPI.ANY_SOURCE, tag=p)
+        msg = comm.recv(source=MPI.ANY_SOURCE, tag=p) 
         if msg[0] == 1: # root machine
             print(f"---CENTER:: Received message  {msg}")
             f.write(msg[2] + "\n")
         # print(f"---CENTER:: Received message  {msg}")
-        sender = msg[0]
-        receiver = msg[1]
-        string = msg[2]
-        comm.send([sender,string], dest=receiver-1, tag=p)
+        else:
+            sender = msg[0]
+            receiver = msg[1]
+            string = msg[2]
+        comm.send([sender,string], dest=receiver, tag=p)
         # print(f"---CENTER:: Sent message {msg} to {receiver} at production cycle {p}")
 
 # Close the spawned processes

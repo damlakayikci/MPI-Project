@@ -11,8 +11,8 @@ filename = str(filename)
 num_production_cycles, threshold, num_machines= init.get_input(filename)
 
 print(f"I am machine {rank+1}")
-
-Machine.machines[rank+1].work(parent_comm, threshold)
+if rank != 0:
+    Machine.machines[rank].work(parent_comm, threshold)
 
 
 parent_comm.Disconnect()

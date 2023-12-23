@@ -10,7 +10,7 @@ class Machine:
     machines: dict = {} # dictionary to keep the machines
     
     # define constructor
-    def __init__(self, id: int , operation: str, production_cycle: int, parent_id: int = None) -> None:
+    def __init__(self, id: int , operation: str, production_cycle: int, parent_id: int = None, original_string=None) -> None:
         self.id: int = id
         operations = Machine.operations[id%2].copy() 
         for op in operations:
@@ -24,6 +24,7 @@ class Machine:
         self.parent_id: int = parent_id
         self.children: list[int] = []
         self.production_cycle: int = production_cycle
+        self.original_string = original_string
         
     def add_child(self, child_id: int) -> None:
         self.children.append(child_id)
@@ -80,7 +81,7 @@ class Machine:
         
         if self.children != []:                           # if machine has children, wait for them to finish
             for child_id in self.children:
-                recv = comm.recv(source=0, tag=self.production_cycle)
+                recv = comm.recv(source=0, tag=self.production_cycle) # FIXME !!!
                 # print("\n-RECEIVED:: Machine {} received message from {} at production cycle {}\n".format(self.id, child_id, self.production_cycle))
                 self.products.append([recv[0], recv[1]])                # add the product to the machine's product list
                 
@@ -114,7 +115,8 @@ class Machine:
             self.products = []
         else: # TODO: dogru mu bilmiyorum
             self.products = []
-            self.add_product([0,string])                 # else, add the product to its product list
+            #self.add_product([0,string])                 # else, add the product to its product list
+            self.products = [[0, self.original_string]]
             
         self.work(comm, threshold)                       # call work function recursively for other production cycles
 
