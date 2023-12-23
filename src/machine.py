@@ -89,7 +89,7 @@ class Machine:
         string = self.add()                               # add products in machine's product list
         if self.id == 1:                                  # if machine is root, print the product
             # print("\n-ROOT:: Machine {}'s product is {} at production cycle {}\n".format(self.id, string, self.production_cycle))
-            comm.send([self.id, 1,string], dest=0, tag=self.production_cycle) # TODO: 1 yerine ne yazacagimi bilmiyorum
+            comm.send([self.id, 1, string], dest=0, tag=self.production_cycle) #msg[1] is left as 1 since destination id is also 1
         else:
             operation = getattr(self, self.operation)         # get the operation to be performed
             self.wear += Machine.wear_factors[self.operation] # add wear factor
@@ -103,14 +103,10 @@ class Machine:
                 message = [self.id, cost, self.production_cycle]
                 comm.isend(message, dest=0, tag=0)
                 self.wear = 0                                 # reset the wear factor
-            
-            # self.operation = self.next_operations[0]          # set the next operation as current operation
-            # self.next_operations.remove(self.operation)       # remove the operation from the list
-            # self.next_operations.append(self.operation)       # add the operation to the end of the list
-            if self.id % 2 == 1:         
+
+            if self.id % 2 == 1:                                # if machine id is odd, change the operation in the second operation list   
                 self.operation_index = (self.operation_index + 1) % 2
                 self.operation = Machine.operations[self.id%2][self.operation_index]
-                
             else:
                 self.operation_index = (self.operation_index + 1) % 3
                 self.operation = Machine.operations[self.id%2][self.operation_index]
