@@ -29,15 +29,15 @@ for p in range(production_cycle, 0, -1):
             # print(f"---CENTER:: Received EMERGENCY message {wear_out_msg}") #TODO: remove this
             wear_outs.append(msg)
 
-        msg = comm.recv(source=MPI.ANY_SOURCE, tag=p)  # receive message from any source on production cycle p
-        if msg[0] == 1: # root machine should send the final product to the center
-            print(f"---CENTER:: Received message  {msg}") # TODO: remove this
-            f.write(msg[2] + "\n") 
-        else: # other machines should send the message to their parents, parse the message and send to parent
-            sender = msg[0]     # child id
-            receiver = msg[1]   # parent id
-            string = msg[2]     # product
-        comm.send([sender,string], dest=receiver, tag=p)
+        msg = comm.recv(source=MPI.ANY_SOURCE, tag=p)        # receive message from any source on production cycle p
+
+        if msg[0] == 1:                                      # root machine 
+            f.write(msg[2] + "\n")                              # write the final product to the output file
+        else:                                                # other machines 
+            sender = msg[0]                                     # child id
+            receiver = msg[1]                                   # parent id
+            string = msg[2]                                     # product
+        comm.send([sender,string], dest=receiver, tag=p)     # send the product to the parent
 
 # Disconnect the processes
 comm.Disconnect()

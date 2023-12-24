@@ -1,18 +1,7 @@
 from machine import Machine
 
-# global variables
-num_machines: int
-num_production_cycles: int
-threshold: int
-wear_factors: dict
-Machine.machines: dict
-
-
+# initialize function to create the machines and return the threshold value for work.py
 def get_input(filename):
-    #global Machine.machines
-    global threshold
-    global wear_factors
-
     with open(filename, 'r') as file:
         lines = file.readlines()
 
@@ -21,6 +10,7 @@ def get_input(filename):
 
     # 2nd line: Number of production cycles
     num_production_cycles = int(lines[1]) 
+
     Machine.machines[1] = Machine(1, ['add'], num_production_cycles, None) # initialize root machine
 
     # 3rd line: Wear factors for each operation
@@ -28,7 +18,6 @@ def get_input(filename):
     operations = ['enhance', 'reverse', 'chop', 'trim', 'split']
     for i in range(5):
         Machine.wear_factors[operations[i]] = int(wear_factor[i])
-
    
     # 4th line: Threshold value for maintenance
     threshold = int(lines[3])
@@ -63,8 +52,9 @@ def get_input(filename):
         Machine.machines[leaves[i]].add_product([0,product]) # add the product to the leaf machine's product list
         Machine.machines[leaves[i]].original_string = product
 
-    return num_production_cycles, threshold, num_machines
+    return threshold
 
+# initialize function to return the number of machines and the number of production cycles for main.py
 def init(filename):
     with open(filename, 'r') as file:
         lines = file.readlines()
@@ -72,9 +62,6 @@ def init(filename):
     num_production_cycles = int(lines[1])
     return num_machines, num_production_cycles
 
-#filename = "/Users/damlakayikci/Desktop/cmpe/okul/cmpe300/MPI-Project/src/input2.txt"
-
-#leaves,  threshold , num_machines= get_input(filename)
 
 
 
