@@ -22,11 +22,10 @@ f = open(output_file, "w")
 for p in range(production_cycle, 0, -1):
     for i in range(machine_count): 
         # Check for wear out messages
-        flag = comm.iprobe(source=MPI.ANY_SOURCE, tag=0) # TODO: check hepsini alıyor mu
+        flag = comm.iprobe(source=MPI.ANY_SOURCE, tag=0) 
         if flag:
             wear_out_msg = comm.recv(source=MPI.ANY_SOURCE, tag=0)
             msg = "{}-{}-{}".format(wear_out_msg[0], wear_out_msg[1], production_cycle - int(wear_out_msg[2]) + 1)
-            # print(f"---CENTER:: Received EMERGENCY message {wear_out_msg}") #TODO: remove this
             wear_outs.append(msg)
 
         msg = comm.recv(source=MPI.ANY_SOURCE, tag=p)        # receive message from any source on production cycle p
