@@ -25,11 +25,13 @@ pip install mpi4py
 
 on Windows:
 ```bash
-mpiexec -n 1 python src/main.py input.txt output.txt
+cd src
+mpiexec -n 1 python main.py input.txt output.txt
 ```
 on MacOS:
 ```bash
-mpiexec --oversubscribe -n 1 python src/main.py input.txt output.txt
+cd src
+mpiexec --oversubscribe -n 1 python main.py input.txt output.txt
 ```
 
 # Contact
