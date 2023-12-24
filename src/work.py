@@ -3,17 +3,13 @@ import init
 from mpi4py import MPI
 import sys
 
-parent_comm = MPI.Comm.Get_parent()
-rank = parent_comm.Get_rank()
+parent_comm = MPI.Comm.Get_parent()                                 # get the parent communicator
+rank = parent_comm.Get_rank()                                       # get the rank of the current machine
 
-_, filename = sys.argv
-filename = str(filename)
-num_production_cycles, threshold, num_machines= init.get_input(filename)
+_, filename = sys.argv                                              # get the filename from the maim process
+_, threshold, _ = init.get_input(str(filename))                     # initialize the machines and get the threshold value
 
-print(f"I am machine {rank+1}")
-if rank != 0:
-    Machine.machines[rank].work(parent_comm, threshold)
-
+if rank != 0:                                                       # if not the center
+    Machine.machines[rank].work(parent_comm, threshold)             # call work function for the current machine
 
 parent_comm.Disconnect()
-
