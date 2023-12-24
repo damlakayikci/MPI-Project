@@ -35,7 +35,7 @@ def get_input(filename):
         Machine.machines[child_id] = Machine(child_id, operation, num_production_cycles, parent_id)
         
         # add the child to the parent's children list if parent is created already
-        if Machine.machines[parent_id] != None:
+        if parent_id in Machine.machines.keys():
             Machine.machines[parent_id].add_child(child_id)
         else: # else, add it to the list to add later
             parents_not_created.append((parent_id, child_id))
